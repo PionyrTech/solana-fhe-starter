@@ -97,3 +97,38 @@ propagated bound (on chain, has no secret key)  16,383  <- the point of refusal
 The gap is the price of being able to make a guarantee without the key. The
 standard tier carries the same fresh bound of 64 but a decryptable bound of
 137,438,953,471, so it absorbs more than two million additions before refusing.
+
+## The devnet deployment
+
+The program is deployed to devnet at
+`EJimqNCEMedCWkzUFPMFVWudYpHSvHAWFHyqeegyfqYt`, deployed with `--final`, so it has
+no upgrade authority and cannot be changed.
+
+| | Value |
+| --- | --- |
+| Program id | `EJimqNCEMedCWkzUFPMFVWudYpHSvHAWFHyqeegyfqYt` |
+| Deploy signature | `2ccLydPzxsjUhZBSHm6GCgiMBPC14z648k7JKJbEQ6ufeuiGZSZGxpECYSExWts6UKRkMkqufVswpUekdJzvzWq2` |
+| Deployed in slot | 514,887,415 |
+| Program account | 170,088 bytes |
+| Upgrade authority | none |
+
+The same demo-tier addition was run against it to confirm the deployed artifact
+behaves like the local build:
+
+```text
+compute units consumed: 20333      (20,322 on a local validator)
+decrypted slots:   207, 57
+expected slots:    207, 57
+measured noise:    9
+```
+
+Compute units are a deterministic count for a given runtime, so two runs of the
+same code should agree exactly. These differ by 11, and the honest answer is that
+the cause was not investigated: the two runs hit different runtimes (the locally
+installed `solana-cli` 4.3.2 against devnet's). Both figures are far inside the
+200,000 budget, and the 11 units do not change any conclusion here.
+
+The public devnet RPC rate limits hard. A run reports `429 Too Many Requests` and
+retries; it completes, but the wall clock is not a meaningful measurement against
+that endpoint.
+

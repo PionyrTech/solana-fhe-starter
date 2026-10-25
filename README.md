@@ -33,6 +33,29 @@ cd solana-fhe-starter
 `setup.sh` installs the toolchains that are missing, builds the program for SBF,
 and runs both test suites. It prints every command before it runs it.
 
+### Devnet deployment
+
+The program is live on devnet at `EJimqNCEMedCWkzUFPMFVWudYpHSvHAWFHyqeegyfqYt`.
+
+It was deployed with `--final`, so it is **immutable**: there is no upgrade
+authority and the code at that address cannot be changed, by us or anyone. If you
+want to modify it, deploy your own copy.
+
+```bash
+solana program show EJimqNCEMedCWkzUFPMFVWudYpHSvHAWFHyqeegyfqYt --url devnet
+```
+
+Point the CLI at it:
+
+```bash
+cd cli
+npx tsx src/cli.ts onchain keys.json --params demo --slots 7,3,200,54 \
+  --rpc https://api.devnet.solana.com
+```
+
+The public devnet RPC rate limits aggressively, so a run may retry a few times.
+That is the endpoint, not the program.
+
 ### The demo
 
 ```bash
@@ -155,6 +178,7 @@ Enc(7) x Enc(7)   = Enc(49)       off chain, in Microsoft SEAL, because it canno
 - [Getting started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Quickstart](#quickstart)
+  - [Devnet deployment](#devnet-deployment)
   - [The demo](#the-demo)
   - [Commands](#commands)
   - [Verifying the claims yourself](#verifying-the-claims-yourself)
