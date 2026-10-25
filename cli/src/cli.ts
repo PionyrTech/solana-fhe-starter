@@ -41,6 +41,7 @@ import {
 } from "./sdk/rlwe.js";
 import { createSealEngine } from "./sdk/seal.js";
 import { humanBytes, sha256 } from "./sdk/util.js";
+import { verifyAddition, verifyScalarMul, type EncryptedAccount } from "./sdk/verify.js";
 
 const DEFAULT_PROGRAM_ID = "EJimqNCEMedCWkzUFPMFVWudYpHSvHAWFHyqeegyfqYt";
 const VERSION = 1;
@@ -158,6 +159,8 @@ const HELP = `solana-fhe-starter
   On chain (needs a validator and a deployed program)
     onchain <keys.json> --slots 7,3,10,4      create, upload, add, fetch, decrypt
     bench --params demo                       measure the compute units of one addition
+    verify --a <pk> --b <pk> --out <pk>       recompute the sum from public bytes, no key needed
+    verify --a <pk> --k 5 --out <pk>          the same for a scaling
 `;
 
 async function main(): Promise<void> {
@@ -338,6 +341,10 @@ async function main(): Promise<void> {
       const signature = await homomorphicAdd(options, aKey, bKey, outKey);
       console.log(`homomorphic_add confirmed: ${signature}`);
       console.log(`compute units consumed: ${units}`);
+      console.log("accounts:");
+      console.log(`  a   ${aKey.toBase58()}`);
+      console.log(`  b   ${bKey.toBase58()}`);
+      console.log(`  out ${outKey.toBase58()}`);
 
       const account = await fetchValue(options, outKey);
       console.log(
@@ -364,6 +371,34 @@ async function main(): Promise<void> {
 
       const digest = await sha256(new Uint8Array(account.blob));
       console.log(`result digest (sha256 of the ciphertext): ${Buffer.from(digest).toString("hex")}`);
+      return;
+    }
+
+    case "verify": {
+      // Recomputes the claimed operation from the public ciphertext bytes and
+      // compares. No key, and no trust in the program.
+      const options = chainOptions(args);
+      const load = async (address: string): Promise<EncryptedAccount> => {
+        const key = new PublicKey(address);
+        return { address, key: key.toBuffer(), account: await fetchValue(options, key) };
+      };
+
+      const a = await load(arg(args, "a"));
+      const out = await load(arg(args, "out"));
+      const b = arg(args, "b", "");
+      const k = arg(args, "k", "");
+
+      let result;
+      if (b) {
+        result = verifyAddition(a, await load(b), out);
+      } else if (k) {
+        result = verifyScalarMul(a, out, BigInt(k));
+      } else {
+        throw new Error("verify needs --b (checking an addition) or --k (checking a scaling)");
+      }
+
+      for (const line of result.lines) console.log(line);
+      if (!result.ok) process.exitCode = 1;
       return;
     }
 

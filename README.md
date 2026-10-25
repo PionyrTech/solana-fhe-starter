@@ -102,6 +102,7 @@ On chain, against a running validator with the program deployed:
 ```bash
 npx tsx src/cli.ts onchain keys.json --slots 7,3,200,54  # create, upload, add, fetch, decrypt
 npx tsx src/cli.ts bench --params standard               # compute units for one addition
+npx tsx src/cli.ts verify --a <pk> --b <pk> --out <pk>   # recompute the sum, no key needed
 ```
 
 Tests:
@@ -118,6 +119,19 @@ Nothing here asks to be taken on faith:
 
 - **That addition is homomorphic on chain.** `scripts/demo.sh` decrypts the
   on-chain result and compares it to the sum. It prints `MISMATCH` if it disagrees.
+- **That the program did the arithmetic it claims.** `verify` recomputes the
+  operation from the public ciphertext bytes and compares coefficient by
+  coefficient. It uses no key and trusts nothing, because addition on a
+  ciphertext is a public deterministic function:
+
+  ```bash
+  npx tsx src/cli.ts verify --a <pubkey> --b <pubkey> --out <pubkey>   # out should be a + b
+  npx tsx src/cli.ts verify --a <pubkey> --k 5 --out <pubkey>          # out should be 5 * a
+  ```
+
+  `onchain` prints the three account addresses it used, so you can paste them
+  straight into `verify`. This proves the computation; only the plaintext needs
+  the key.
 - **That the two implementations agree.** `npm run --prefix cli vectors` regenerates
   the vector file; `cargo test` then re-derives every operation from it in Rust.
 - **That the noise bound is conservative.** The demo prints the measured noise next
