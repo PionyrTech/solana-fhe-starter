@@ -171,16 +171,52 @@ export interface ChainOptions {
   payer: Keypair;
 }
 
+/**
+ * Retry an RPC call through the rate limiting the public endpoints apply.
+ *
+ * The public devnet RPC answers `429 Too Many Requests` under any real load, and
+ * a ciphertext upload is dozens of transactions, so without this the upload dies
+ * part way through. Only transport-level failures are retried: a rejected
+ * program is never retried, because retrying it would just fail again.
+ */
+async function withRetry<T>(label: string, fn: () => Promise<T>, attempts = 20): Promise<T> {
+  let delay = 750;
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await fn();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const retryable = /\b429\b|Too Many Requests|rate limit|fetch failed|ECONNRESET|ETIMEDOUT|\b50[234]\b/.test(
+        message,
+      );
+      if (!retryable || attempt >= attempts) throw error;
+      console.warn(
+        `  ${label}: ${message.split("\n")[0].slice(0, 120)} (attempt ${attempt}/${attempts}, retrying in ${delay}ms)`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      delay = Math.min(Math.round(delay * 1.5), 12_000);
+    }
+  }
+}
+
 async function send(options: ChainOptions, instructions: TransactionInstruction[], cu: number) {
   const transaction = new Transaction().add(
     ComputeBudgetProgram.setComputeUnitLimit({ units: cu }),
     ...instructions,
   );
-  const signature = await options.connection.sendTransaction(transaction, [options.payer], {
-    skipPreflight: false,
-  });
-  const latest = await options.connection.getLatestBlockhash();
-  await options.connection.confirmTransaction({ signature, ...latest }, "confirmed");
+  const latest = await withRetry("blockhash", () => options.connection.getLatestBlockhash());
+  transaction.recentBlockhash = latest.blockhash;
+  transaction.feePayer = options.payer.publicKey;
+  transaction.sign(options.payer);
+
+  // Sign once and resend the same bytes, so a retry after a 429 is the same
+  // transaction rather than a differently-signed one.
+  const signature = await withRetry("send", () =>
+    options.connection.sendRawTransaction(transaction.serialize(), { skipPreflight: false }),
+  );
+  await withRetry("confirm", () =>
+    options.connection.confirmTransaction({ signature, ...latest }, "confirmed"),
+  );
   return signature;
 }
 
@@ -234,7 +270,7 @@ export async function createValue(
 
   const target = valueAccountSize(blobLen(params));
   let allocations = 1;
-  let info = await options.connection.getAccountInfo(address);
+  let info = await withRetry("account", () => options.connection.getAccountInfo(address));
   let current = info?.data.length ?? 0;
   while (current < target) {
     const next = Math.min(target, current + MAX_PERMITTED_DATA_INCREASE);
@@ -242,7 +278,7 @@ export async function createValue(
     allocations += 1;
     current = next;
   }
-  info = await options.connection.getAccountInfo(address);
+  info = await withRetry("account", () => options.connection.getAccountInfo(address));
   if ((info?.data.length ?? 0) !== target) {
     throw new Error(`value account is ${info?.data.length} bytes, expected ${target}`);
   }
@@ -283,11 +319,17 @@ export async function uploadCiphertext(
   return { signature: address.toBase58(), chunks, bytes: blob.length };
 }
 
+/**
+ * Read a value account.
+ *
+ * Takes only a connection, not a payer: reading is not signing, and the
+ * verifier has to work for someone who holds no key at all.
+ */
 export async function fetchValue(
-  options: ChainOptions,
+  options: { connection: Connection },
   address: PublicKey,
 ): Promise<ValueAccount> {
-  const info = await options.connection.getAccountInfo(address);
+  const info = await withRetry("account", () => options.connection.getAccountInfo(address));
   if (!info) throw new Error(`${address.toBase58()} does not exist`);
   return decodeValueAccount(new Uint8Array(info.data));
 }
@@ -361,11 +403,11 @@ export async function measureUnits(
     ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
     instruction,
   );
-  const latest = await options.connection.getLatestBlockhash();
+  const latest = await withRetry("blockhash", () => options.connection.getLatestBlockhash());
   transaction.recentBlockhash = latest.blockhash;
   transaction.feePayer = options.payer.publicKey;
   transaction.sign(options.payer);
-  const result = await options.connection.simulateTransaction(transaction);
+  const result = await withRetry("simulate", () => options.connection.simulateTransaction(transaction));
   if (result.value.err) {
     throw new Error(`simulation failed: ${JSON.stringify(result.value.err)}`);
   }

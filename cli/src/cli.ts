@@ -129,6 +129,20 @@ function chainOptions(args: string[]): ChainOptions {
   };
 }
 
+/**
+ * A connection and a program id, with no key.
+ *
+ * Reading a ciphertext and recomputing an operation are both read-only, so
+ * `verify` must work for someone who holds no wallet at all. Requiring a keypair
+ * file to check someone else's arithmetic would be a strange kind of gate.
+ */
+function rpcOptions(args: string[]): { connection: Connection; programId: PublicKey } {
+  return {
+    connection: new Connection(arg(args, "rpc", "http://127.0.0.1:8899"), "confirmed"),
+    programId: new PublicKey(arg(args, "program", DEFAULT_PROGRAM_ID)),
+  };
+}
+
 function parseSlots(raw: string, params: Params): bigint[] {
   return raw
     .split(",")
@@ -377,7 +391,7 @@ async function main(): Promise<void> {
     case "verify": {
       // Recomputes the claimed operation from the public ciphertext bytes and
       // compares. No key, and no trust in the program.
-      const options = chainOptions(args);
+      const options = rpcOptions(args);
       const load = async (address: string): Promise<EncryptedAccount> => {
         const key = new PublicKey(address);
         return { address, key: key.toBuffer(), account: await fetchValue(options, key) };

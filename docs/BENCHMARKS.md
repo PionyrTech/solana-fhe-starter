@@ -132,3 +132,29 @@ The public devnet RPC rate limits hard. A run reports `429 Too Many Requests` an
 retries; it completes, but the wall clock is not a meaningful measurement against
 that endpoint.
 
+### A verifiable example left on devnet
+
+The accounts from the run above are still there, so the arithmetic can be checked
+by anyone without a wallet, a key, or any SOL:
+
+```text
+addition transaction  2emVhaD4W9ZneiZuVJei7ZxFF9tVLyCJYC8fVP3zvQ3pNHMotJEx78w3U45v3c3tkUheJtE1spoUVWVCJbJTAyeW
+a                     E1CbcwaRpN5rXU51knNqrqUi38TrVXNDEaFVh1KtTCbX
+b                     6bKB8oHuzheziz5kYhmtwtipiKHRRkXYE5PEE9XfdW84
+out                   5PW2j54pixvYzyn3Vsz4TiMdyeD8kBCs48NFGjZrSNKE
+```
+
+```bash
+npx tsx src/cli.ts verify \
+  --a E1CbcwaRpN5rXU51knNqrqUi38TrVXNDEaFVh1KtTCbX \
+  --b 6bKB8oHuzheziz5kYhmtwtipiKHRRkXYE5PEE9XfdW84 \
+  --out 5PW2j54pixvYzyn3Vsz4TiMdyeD8kBCs48NFGjZrSNKE \
+  --rpc https://api.devnet.solana.com
+```
+
+Note the operand order. A Solana message reorders account keys into
+signer/writable groups, so the `a`, `b`, `out` order in the transaction does not
+match the instruction's; the account headers are the authority, and `out.parent_a`
+and `out.parent_b` name the two operands.
+
+

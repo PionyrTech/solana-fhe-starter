@@ -132,6 +132,28 @@ Nothing here asks to be taken on faith:
   `onchain` prints the three account addresses it used, so you can paste them
   straight into `verify`. This proves the computation; only the plaintext needs
   the key.
+
+  `verify` needs **no wallet, no key and no SOL**, and there is a live example
+  already on devnet. These three accounts are a real addition the program
+  performed (transaction
+  [`2emVhaD4…`](https://explorer.solana.com/tx/2emVhaD4W9ZneiZuVJei7ZxFF9tVLyCJYC8fVP3zvQ3pNHMotJEx78w3U45v3c3tkUheJtE1spoUVWVCJbJTAyeW?cluster=devnet)):
+
+  ```text
+  a   E1CbcwaRpN5rXU51knNqrqUi38TrVXNDEaFVh1KtTCbX
+  b   6bKB8oHuzheziz5kYhmtwtipiKHRRkXYE5PEE9XfdW84
+  out 5PW2j54pixvYzyn3Vsz4TiMdyeD8kBCs48NFGjZrSNKE
+  ```
+
+  ```bash
+  npx tsx src/cli.ts verify \
+    --a E1CbcwaRpN5rXU51knNqrqUi38TrVXNDEaFVh1KtTCbX \
+    --b 6bKB8oHuzheziz5kYhmtwtipiKHRRkXYE5PEE9XfdW84 \
+    --out 5PW2j54pixvYzyn3Vsz4TiMdyeD8kBCs48NFGjZrSNKE \
+    --rpc https://api.devnet.solana.com
+  ```
+
+  It prints `VERIFIED`. Swap any two of the three addresses and it prints `FAIL`,
+  which is how you know the check is doing something.
 - **That the two implementations agree.** `npm run --prefix cli vectors` regenerates
   the vector file; `cargo test` then re-derives every operation from it in Rust.
 - **That the noise bound is conservative.** The demo prints the measured noise next
