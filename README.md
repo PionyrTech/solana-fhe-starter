@@ -5,7 +5,7 @@
 [About](#about) · [Project structure](#project-structure) · [Resources](#resources) · [Working with the starter](#working-with-solana-fhe-starter) · [Support](#support)
 
 ![status: working](https://img.shields.io/badge/status-working-3ddc97)
-![license](https://img.shields.io/badge/license-Apache--2.0-blue)
+![license](https://img.shields.io/badge/license-MIT-green)
 ![runs on: SBF](https://img.shields.io/badge/runs%20on-SBF-9945FF)
 ![chain: Solana](https://img.shields.io/badge/chain-Solana-14F195)
 
@@ -274,7 +274,7 @@ worth more than the fix.
 
 ### License
 
-Apache-2.0. See [`LICENSE`](./LICENSE).
+MIT. See [`LICENSE`](./LICENSE).
 
 ### FAQ
 

@@ -4,7 +4,7 @@
   "private": true,
   "description": "Client SDK and CLI: RLWE encryption, the off-chain FHE engine, and the on-chain client.",
   "type": "module",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "engines": {
     "node": ">=20"
   },

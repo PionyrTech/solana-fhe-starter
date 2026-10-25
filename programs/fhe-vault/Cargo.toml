@@ -3,7 +3,7 @@ name = "fhe-vault"
 version = "0.1.0"
 description = "Stores RLWE ciphertexts and runs the homomorphic operations that fit inside a Solana program."
 edition = "2021"
-license = "Apache-2.0"
+license = "MIT"
 repository = "https://github.com/pionyrtech/solana-fhe-starter"
 
 [lib]
