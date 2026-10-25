@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# builds
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# rust / solana
+target/
+.anchor/
+test-ledger/
+Cargo.lock
+
+# go
+*.exe
+
+# env
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# logs and os noise
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# editors
+.idea/
+.vscode/
