@@ -1,0 +1,23 @@
+[package]
+name = "fhe-vault"
+version = "0.1.0"
+description = "Stores RLWE ciphertexts and runs the homomorphic operations that fit inside a Solana program."
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/pionyrtech/solana-fhe-starter"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "fhe_vault"
+
+[dependencies]
+anchor-lang = "1.2.1"
+fhe-core = { path = "../../crates/fhe-core" }
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]

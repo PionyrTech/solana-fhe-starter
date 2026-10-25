@@ -1,0 +1,29 @@
+{
+  "name": "solana-fhe-starter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Client SDK and CLI: RLWE encryption, the off-chain FHE engine, and the on-chain client.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "vectors": "tsx scripts/emit-vectors.ts",
+    "demo": "tsx src/cli.ts demo",
+    "cli": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@solana/web3.js": "1.98.0",
+    "node-seal": "7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.0",
+    "tsx": "4.19.2",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}

@@ -13,7 +13,6 @@ out/
 target/
 .anchor/
 test-ledger/
-Cargo.lock
 
 # go
 *.exe
@@ -24,6 +23,12 @@ Cargo.lock
 !.env.example
 *.key
 *.pem
+
+# secrets: the CLI writes key material here by default
+keys.json
+keys-*.json
+id.json
+*.keypair.json
 
 # logs and os noise
 *.log

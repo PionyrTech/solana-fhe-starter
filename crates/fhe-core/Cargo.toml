@@ -1,0 +1,22 @@
+[package]
+name = "fhe-core"
+version = "0.1.0"
+description = "The homomorphic operations this kit runs inside a Solana program: ciphertext addition, subtraction, and plaintext scaling over an RLWE ciphertext."
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "fhe_core"
+path = "src/lib.rs"
+
+# No runtime dependencies. The crate is deliberately slice based and allocation
+# free so it compiles for SBF (cargo-build-sbf) and runs unchanged on the host.
+[features]
+default = ["std"]
+std = []
+
+[dependencies]
+
+[dev-dependencies]
+serde_json = "1"
